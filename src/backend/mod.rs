@@ -22,6 +22,19 @@ pub struct Basic {
 
 pub use ethereum::Log;
 
+/// internal transaction  information.
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[cfg_attr(feature = "with-codec", derive(codec::Encode, codec::Decode))]
+#[cfg_attr(feature = "with-serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct InternalTransaction {
+	/// transaction caller
+	pub parent: H160,
+	/// transaction callee
+	pub node: H160,
+	/// gas used for this transaction
+	pub gas_used: U256,
+}
+
 /// Apply state operation.
 #[derive(Clone, Debug)]
 pub enum Apply<I> {

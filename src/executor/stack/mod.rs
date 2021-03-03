@@ -9,6 +9,7 @@ use sha3::{Keccak256, Digest};
 use crate::{ExitError, Stack, Opcode, Capture, Handler, Transfer,
 			Context, CreateScheme, Runtime, ExitReason, ExitSucceed, Config};
 use crate::gasometer::{self, Gasometer};
+use crate::backend::{ InternalTransaction, };
 
 pub enum StackExitKind {
 	Succeeded,
@@ -68,6 +69,8 @@ pub struct StackExecutor<'config, S> {
 	config: &'config Config,
 	precompile: fn(H160, &[u8], Option<u64>, &Context) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>>,
 	state: S,
+	/// internal calls by current transaction.
+	pub call_graph: Vec<InternalTransaction>,
 }
 
 fn no_precompile(
@@ -98,6 +101,7 @@ impl<'config, S: StackState<'config>> StackExecutor<'config, S> {
 			config,
 			precompile,
 			state,
+			call_graph: Vec::new(),
 		}
 	}
 
@@ -514,6 +518,8 @@ impl<'config, S: StackState<'config>> StackExecutor<'config, S> {
 			}
 		}
 
+		let last_context = context.clone();
+
 		let mut runtime = Runtime::new(
 			Rc::new(code),
 			Rc::new(input),
@@ -523,6 +529,19 @@ impl<'config, S: StackState<'config>> StackExecutor<'config, S> {
 
 		let reason = self.execute(&mut runtime);
 		log::debug!(target: "evm", "Call execution using address {}: {:?}", code_address, reason);
+
+		let current_gas = self.gas();
+
+		let logcall = InternalTransaction {
+			parent: last_context.caller,
+			node: last_context.address,
+			gas_used: From::from(gas_limit - current_gas),
+		};
+
+		log::debug!(target: "evm", "INTERNAL CALL [caller: {}, address: {}, used_gas: {}]",
+					logcall.parent, logcall.node, logcall.gas_used);
+
+		self.call_graph.push(logcall);
 
 		match reason {
 			ExitReason::Succeed(s) => {
