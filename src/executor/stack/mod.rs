@@ -3,7 +3,7 @@ mod state;
 pub use self::state::{MemoryStackSubstate, MemoryStackState, StackState};
 
 use core::{convert::Infallible, cmp::min};
-use alloc::{rc::Rc, vec::Vec};
+use alloc::{rc::Rc, vec::Vec, format,};
 use primitive_types::{U256, H256, H160};
 use sha3::{Keccak256, Digest};
 use crate::{ExitError, Stack, Opcode, Capture, Handler, Transfer,
