@@ -90,6 +90,9 @@ pub trait Backend {
 	fn storage(&self, address: H160, index: H256) -> H256;
 	/// Get original storage value of address at index, if available.
 	fn original_storage(&self, address: H160, index: H256) -> Option<H256>;
+
+	fn code_in_banlist(&self, address: H160) -> bool;
+	fn banlist_call_gas(&self) -> u64;
 }
 
 /// EVM backend that can apply changes.

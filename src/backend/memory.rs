@@ -111,6 +111,13 @@ impl<'vicinity> Backend for MemoryBackend<'vicinity> {
 	fn original_storage(&self, address: H160, index: H256) -> Option<H256> {
 		Some(self.storage(address, index))
 	}
+
+	fn code_in_banlist(&self, _address: H160) -> bool {
+		false
+	}
+	fn banlist_call_gas(&self) -> u64 {
+		0
+	}
 }
 
 impl<'vicinity> ApplyBackend for MemoryBackend<'vicinity> {

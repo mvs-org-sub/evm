@@ -119,4 +119,7 @@ pub trait Handler {
 	) -> Result<(), ExitError> {
 		Err(ExitError::OutOfGas)
 	}
+
+	fn code_in_banlist(&self, addr: H160) -> bool;
+	fn banlist_call_gas(&self) -> u64;
 }

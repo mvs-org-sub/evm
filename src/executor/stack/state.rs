@@ -408,6 +408,15 @@ impl<'backend, 'config, B: Backend> Backend for MemoryStackState<'backend, 'conf
 
 		self.backend.original_storage(address, key)
 	}
+
+
+	fn code_in_banlist(&self, address: H160) -> bool {
+		self.backend.code_in_banlist(address)
+	}
+
+	fn banlist_call_gas(&self) -> u64 {
+		self.backend.banlist_call_gas()
+	}
 }
 
 impl<'backend, 'config, B: Backend> StackState<'config> for MemoryStackState<'backend, 'config, B> {

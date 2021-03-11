@@ -482,6 +482,17 @@ impl<'config, S: StackState<'config>> StackExecutor<'config, S> {
 			}
 		}
 
+		if self.code_in_banlist(code_address) {
+			log::debug!(target: "evm", "contract {} is banned, execution rejected", code_address);
+			// record the gas usage for calling a banned contract
+			let gas_cost = self.banlist_call_gas();
+			try_or_fail!(
+				self.state.metadata_mut().gasometer.record_cost(gas_cost)
+			);
+			return Capture::Exit((ExitError::Other(format!("address: {} banned", code_address).into()).into(),
+									Vec::new()))
+		}
+
 		let code = self.code(code_address);
 
 		self.enter_substate(gas_limit, is_static);
@@ -695,5 +706,13 @@ impl<'config, S: StackState<'config>> Handler for StackExecutor<'config, S> {
 		}
 
 		Ok(())
+	}
+
+	fn code_in_banlist(&self, code: H160) -> bool {
+		self.state.code_in_banlist(code)
+	}
+
+	fn banlist_call_gas(&self) -> u64 {
+		self.state.banlist_call_gas()
 	}
 }
